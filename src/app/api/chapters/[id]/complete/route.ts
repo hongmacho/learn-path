@@ -4,14 +4,15 @@ import { eq } from 'drizzle-orm';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const db = getDb();
     const chapter = db
       .select()
       .from(schema.chapters)
-      .where(eq(schema.chapters.id, params.id))
+      .where(eq(schema.chapters.id, id))
       .get();
 
     if (!chapter) {
@@ -28,13 +29,13 @@ export async function PATCH(
         completedAt: !chapter.isCompleted ? now : null,
         updatedAt: now,
       })
-      .where(eq(schema.chapters.id, params.id))
+      .where(eq(schema.chapters.id, id))
       .run();
 
     const updated = db
       .select()
       .from(schema.chapters)
-      .where(eq(schema.chapters.id, params.id))
+      .where(eq(schema.chapters.id, id))
       .get();
 
     return NextResponse.json(updated);

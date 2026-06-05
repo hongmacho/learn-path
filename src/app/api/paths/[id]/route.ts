@@ -4,14 +4,15 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const db = getDb();
     const path = db
       .select()
       .from(schema.learningPaths)
-      .where(eq(schema.learningPaths.id, params.id))
+      .where(eq(schema.learningPaths.id, id))
       .get();
 
     if (!path) {
@@ -21,11 +22,10 @@ export async function GET(
       );
     }
 
-    // 챕터 정보도 함께 반환
     const chapters = db
       .select()
       .from(schema.chapters)
-      .where(eq(schema.chapters.pathId, params.id))
+      .where(eq(schema.chapters.pathId, id))
       .orderBy(schema.chapters.orderIndex)
       .all();
 
@@ -41,9 +41,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { title, description, category, difficulty, estimatedWeeks } = body;
 
@@ -57,13 +58,13 @@ export async function PATCH(
         estimatedWeeks: estimatedWeeks || undefined,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(schema.learningPaths.id, params.id))
+      .where(eq(schema.learningPaths.id, id))
       .run();
 
     const updated = db
       .select()
       .from(schema.learningPaths)
-      .where(eq(schema.learningPaths.id, params.id))
+      .where(eq(schema.learningPaths.id, id))
       .get();
 
     return NextResponse.json(updated);
@@ -78,12 +79,13 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const db = getDb();
     db.delete(schema.learningPaths)
-      .where(eq(schema.learningPaths.id, params.id))
+      .where(eq(schema.learningPaths.id, id))
       .run();
 
     return NextResponse.json({ success: true });

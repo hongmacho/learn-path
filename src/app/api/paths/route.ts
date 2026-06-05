@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, schema } from '@/db';
-import { v4 as uuidv4 } from 'uuid';
-import { eq, like, and } from 'drizzle-orm';
+
+import { eq, like, and, SQL } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,24 +10,15 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
 
-    let query = db
+    const conditions: SQL[] = [eq(schema.learningPaths.isActive, true)];
+    if (search) conditions.push(like(schema.learningPaths.title, `%${search}%`));
+    if (category) conditions.push(eq(schema.learningPaths.category, category));
+
+    const paths = db
       .select()
       .from(schema.learningPaths)
-      .where(eq(schema.learningPaths.isActive, true));
-
-    if (search) {
-      query = query.where(
-        like(schema.learningPaths.title, `%${search}%`)
-      ) as any;
-    }
-
-    if (category) {
-      query = query.where(
-        eq(schema.learningPaths.category, category)
-      ) as any;
-    }
-
-    const paths = query.all();
+      .where(and(...conditions))
+      .all();
     return NextResponse.json(paths);
   } catch (error) {
     console.error('Failed to fetch paths:', error);
@@ -57,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getDb();
-    const id = uuidv4();
+    const id = crypto.randomUUID();
 
     db.insert(schema.learningPaths).values({
       id,

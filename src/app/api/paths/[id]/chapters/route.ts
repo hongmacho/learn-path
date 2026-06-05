@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, schema } from '@/db';
 import { eq } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
+
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const db = getDb();
     const chapters = db
       .select()
       .from(schema.chapters)
-      .where(eq(schema.chapters.pathId, params.id))
+      .where(eq(schema.chapters.pathId, id))
       .orderBy(schema.chapters.orderIndex)
       .all();
 
@@ -28,9 +29,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { title, description, orderIndex } = body;
 
@@ -42,12 +44,12 @@ export async function POST(
     }
 
     const db = getDb();
-    const chapterId = uuidv4();
+    const chapterId = crypto.randomUUID();
 
     db.insert(schema.chapters)
       .values({
         id: chapterId,
-        pathId: params.id,
+        pathId: id,
         title,
         description: description || '',
         orderIndex: orderIndex || 0,

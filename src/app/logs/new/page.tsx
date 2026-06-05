@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ interface Chapter {
   title: string;
 }
 
-export default function NewLogPage() {
+function NewLogPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultPathId = searchParams.get('pathId');
@@ -228,5 +228,13 @@ export default function NewLogPage() {
         </div>
       </main>
     </>
+  );
+}
+
+export default function NewLogPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewLogPageContent />
+    </Suspense>
   );
 }

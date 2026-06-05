@@ -4,9 +4,10 @@ import { eq } from 'drizzle-orm';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { content, durationMinutes, loggedAt } = body;
 
@@ -17,13 +18,13 @@ export async function PATCH(
         durationMinutes: durationMinutes || undefined,
         loggedAt: loggedAt || undefined,
       })
-      .where(eq(schema.studyLogs.id, params.id))
+      .where(eq(schema.studyLogs.id, id))
       .run();
 
     const updated = db
       .select()
       .from(schema.studyLogs)
-      .where(eq(schema.studyLogs.id, params.id))
+      .where(eq(schema.studyLogs.id, id))
       .get();
 
     return NextResponse.json(updated);
@@ -38,12 +39,13 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const db = getDb();
     db.delete(schema.studyLogs)
-      .where(eq(schema.studyLogs.id, params.id))
+      .where(eq(schema.studyLogs.id, id))
       .run();
 
     return NextResponse.json({ success: true });

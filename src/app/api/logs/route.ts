@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, schema } from '@/db';
 import { eq, and, gte, lte } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getDb();
-    const logId = uuidv4();
+    const logId = crypto.randomUUID();
 
     db.insert(schema.studyLogs)
       .values({
